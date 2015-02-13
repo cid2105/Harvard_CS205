@@ -31,7 +31,7 @@ class data_transformer:
 
 def get_data(filepath):
     numrows, numcols = 2048, 6144
-    dt = np.dtype(float) 
+    dt = np.dtype(np.float64) 
     data = np.fromfile(filepath, dtype=dt).reshape((numrows, numcols)) 
     return data
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     sample_size, image_size = 6144, 512
     data = get_data("PA1Distro/TomoData.bin")
     transformer = data_transformer(sample_size, image_size)
-    result = reduce(lambda image, k: image + transformer.transform(data[k-1, :], -k*np.pi/sample_size), np.arange(2048))
+    result = reduce(lambda image, k: image + transformer.transform(data[k, :], -(k+1)*np.pi/sample_size), np.arange(2048))
     fig = plt.figure(figsize=(15,10),facecolor='w') 
     plt.imshow(result, cmap='bone')
     plt.imsave('P2serial.png', data, cmap='bone')

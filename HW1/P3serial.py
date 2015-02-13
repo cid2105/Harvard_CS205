@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from Plotter3DCS205 import MeshPlotter3D, MeshPlotter3DParallel
 
 def initial_conditions(DTDX, X, Y):
@@ -82,7 +83,7 @@ if __name__ == '__main__':
   plotter = MeshPlotter3D()
   # Setup the parallel plotter -- one plot gathered from all processes
   #plotter = MeshPlotter3DParallel()
-
+  s_start = time.time()
   for k,t in enumerate(np.arange(0,T,dt)):
     # Compute u^{n+1} with the computational stencil
     apply_stencil(DTDX, up, u, um)
@@ -97,8 +98,9 @@ if __name__ == '__main__':
     um, u, up = u, up, um
 
     # Output and draw Occasionally
-    print "Step: %d  Time: %f" % (k,t)
+    #print "Step: %d  Time: %f" % (k,t)
     if k % 5 == 0:
       plotter.draw_now(I[1:Ix,1:Iy], J[1:Ix,1:Iy], u[1:Ix,1:Iy])
-
-  plotter.save_now(I[1:Ix,1:Iy], J[1:Ix,1:Iy], u[1:Ix,1:Iy], "FinalWave.png")
+  s_stop = time.time()
+  print "Serial Time: %f secs" % (s_stop - s_start)
+  plotter.save_now(I[1:Ix,1:Iy], J[1:Ix,1:Iy], u[1:Ix,1:Iy], "P3Serial.png")

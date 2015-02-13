@@ -111,4 +111,4 @@ if __name__ == '__main__' :
     p_stop = MPI.Wtime()
     
     if rank == 0:
-        print "Parallel Time: %f secs" % (p_stop - p_start)
+        print "Parallel Time with Px,Py=(%d, %d): %f secs" % (Px, Py, p_stop - p_start)

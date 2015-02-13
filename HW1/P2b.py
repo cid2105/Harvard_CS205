@@ -3,6 +3,7 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 import math
+import sys
 plt.ion()         # Allow interactive updates to the plots
 
 from P2serial import data_transformer, get_data
@@ -33,7 +34,7 @@ def parallel_superimpose(data, transformer, image_size, comm, p_root=0):
   start, end = rank*chunk_size, (rank+1)*chunk_size
 
   # sanity check print statements
-  print "Rank %d, start: %d, end: %d, num_elem: %d, pcount: %d" % (rank, start, end, end-start, pcount)
+  # print "Rank %d, start: %d, end: %d, num_elem: %d, pcount: %d" % (rank, start, end, end-start, pcount)
 
   # Compute the partial images
   local_superimposed = reduce(lambda image, k: image + transformer.transform(data[k-start, :], -(k+1)*np.pi/sample_size), xrange(start,end))
@@ -49,7 +50,7 @@ if __name__ == '__main__':
 
   # Get big arrays on process 0
   data = None
-  sample_size, image_size = 6144, 512
+  sample_size, image_size = 6144, int(sys.argv[1])
   numrows, numcols = 2048, 6144
   transformer = data_transformer(sample_size, image_size)
   indices = {}
@@ -66,17 +67,15 @@ if __name__ == '__main__':
   p_stop = MPI.Wtime()
   
   if rank == 0:
-    plt.imsave('P2b.png', np.mat(p_superimposed), cmap='bone')
+    plt.imsave('P2b_parallel image_size=' + str(image_size) + ',p=' + str(pcount) + '.png', np.mat(p_superimposed), cmap='bone')
     
     s_start = time.time()
     s_superimposed = reduce(lambda image, k: image + transformer.transform(data[k-1, :], -k*np.pi/sample_size), np.arange(numrows))
     s_stop = time.time()
-    plt.imsave('P2b_serial.png', np.mat(s_superimposed), cmap='bone')
-
-    rel_error = np.linalg.norm(p_superimposed - s_superimposed) / np.linalg.norm(s_superimposed)
-    print "Serial Time: %f secs" % (s_stop - s_start)
+    plt.imsave('P2b_serial image_size=' + str(image_size) + '.png', np.mat(s_superimposed), cmap='bone')
+    
+    # rel_error = np.linalg.norm(p_superimposed - s_superimposed) / np.linalg.norm(s_superimposed)
+    s_time = s_stop - s_start
+    print "Serial Time: %f secs" % s_time
     print "Parallel Time: %f secs" % (p_stop - p_start)   
-    print "Speedup : %fx" %  ((s_stop - s_start) / (p_stop - p_start))
-    print "Relative Error  = %e" % rel_error
-    if rel_error > 1e-10:
-      print "***LARGE ERROR - POSSIBLE FAILURE!***"
+    print "Speedup : %fx" %  (s_time / (p_stop - p_start))
